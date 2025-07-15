@@ -6,9 +6,12 @@ See `definitions/labjack.node.yaml` for an example node definition file, and `de
 
 ## Installation and Usage
 
+
 ### Python
 
+Install the LabJack software found here: https://support.labjack.com/docs/ljm-software-installer-downloads-t4-t7-t8-digit
 ```bash
+
 # Create a virtual environment named .venv
 python -m venv .venv
 # Activate the virtual environment on Linux or macOS
