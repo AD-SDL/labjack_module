@@ -1,19 +1,13 @@
 
-from madsci.common.types.action_types import (
-    ActionResult,
-    ActionSucceeded,
-    ActionFailed
-)
 from madsci.common.types.node_types import RestNodeConfig
-from madsci.node_module.helpers import action
 from madsci.node_module.rest_node_module import RestNode
+import os
 from labjack_interface import Loop, LabJack, LabJackConnectionType, LabJackVersion
-from pathlib import Path
 
 
 class LabJackVolumeSensorConfig(RestNodeConfig):
     """Configuration for a LabJack volume sensor node"""
-    loops: dict[Loop] = {"AIN0": Loop()}
+    loops: dict[str, Loop] = {"AIN0": Loop()}
 
     total_volume: float = 113.56
     """Total volume of the container in liters """
@@ -30,27 +24,23 @@ class LabJackVolumeSensorConfig(RestNodeConfig):
     device_id: str = "ANY"
     """ID of the LabJack device to connect to"""
 
-
-
-
-
-    
-
-
 class LabJackVolumeSensorNode(RestNode):
     """Node Module Implementation for the Big Kahuna Instruments"""
-
+    config: LabJackVolumeSensorConfig = LabJackVolumeSensorConfig()
     config_model = LabJackVolumeSensorConfig
+
     def startup_handler(self):
-        self.labjack = LabJack(self.config.loops, self.config.labjack_version, self.config.connection_type, self.config.device_id)
+        self.logger.error(str(os.getcwd()))
+        self.labjack = LabJack(self.config.loops, self.config.labjack_version, self.config.labjack_connection_type, self.config.device_id)
         
     def state_handler(self):
         volumes = {}
+        voltages = {}
         for loop in self.config.loops.keys():
-           
             percentage = self.labjack.read_percentage(loop)
             volumes[loop] = (percentage/100)*self.config.total_volume
-        self.node_state = {"volumes": volumes, "units": self.config.volume_units}
+            voltages[loop] = self.labjack.read_voltage(loop)
+        self.node_state = {"voltages": voltages, "volumes": volumes, "units": self.config.volume_units}
         return super().state_handler()
 
    

@@ -16,15 +16,15 @@ class Loop(BaseModel):
         description="The total resistance value for this loop in ohms",
         default=250
         )
-    current_upper_bound: float = Field(
+    voltage_upper_bound: float = Field(
         title="Curent Upper Bound",
         description="The upper bound for the current input in mA",
-        default=20
+        default=10
         )
-    current_lower_bound: float = Field(
+    voltage_lower_bound: float = Field(
         title="Curent Lower Bound",
         description="The lower bound for the current input in mA",
-        default=20
+        default=0.25
         )
 class LabJackConnectionType(str, Enum):
    WIFI =  "WIFI"  # short codes for common LS design tags
@@ -43,7 +43,7 @@ class LabJackVersion(str, Enum):
 
 class LabJack:
 
-    def __init__(self, loops: dict[str, Loop], version: LabJackVersion, connection_type: LabJackConnection, device_id: str = "ANY"):
+    def __init__(self, loops: dict[str, Loop], version: LabJackVersion, connection_type: LabJackConnectionType, device_id: str = "ANY"):
         self.handle = ljm.openS(version.value, connection_type.value, device_id)
         self.loops = loops
    
@@ -58,8 +58,8 @@ class LabJack:
         target_loop = self.loops[loop_name]
 
         voltage = ljm.eReadName(self.handle, target_loop.port)
-        current = 1e3 * voltage / target_loop.resistance
-        percentage = 100 * (current - target_loop.current_lower_bound) / (target_loop.current_upper_bound - target_loop.current_lower_bound)
+        
+        percentage = 100 * (voltage - target_loop.voltage_lower_bound) / (target_loop.voltage_upper_bound - target_loop.voltage_lower_bound)
         return percentage
     
 
